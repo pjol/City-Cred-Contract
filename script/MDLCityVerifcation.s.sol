@@ -2,17 +2,47 @@
 pragma solidity ^0.8.20;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Counter} from "../src/Counter.sol";
+import {MDLCityVerification} from "../src/MDLCityVerification.sol";
+import {stdJson} from "forge-std/StdJson.sol";
+import {SP1VerifierGateway} from "@sp1-contracts/SP1VerifierGateway.sol";
+
+struct SP1ProofFixtureJson {
+    uint256 issued_at;
+    string city;
+    string id;
+    bytes proof;
+    bytes public_values;
+    bytes32 vkey;
+}
+
 
 contract CounterScript is Script {
-    Counter public counter;
+    using stdJson for string;
 
-    function setUp() public {}
+    address verifier;
+    MDLCityVerification public credIssuer;
+
+
+    function loadFixture(string memory fixture) public view returns (SP1ProofFixtureJson memory) {
+        string memory root = vm.projectRoot();
+        string memory fixtureName = string.concat(fixture, ".json");
+        string memory relativePath = string.concat("/src/fixtures/", fixtureName);
+        string memory path = string.concat(root, relativePath);
+        string memory json = vm.readFile(path);
+        bytes memory jsonBytes = json.parseRaw(".");
+        return abi.decode(jsonBytes, (SP1ProofFixtureJson));
+    }
+
+    function setUp() public {
+    }
 
     function run() public {
         vm.startBroadcast();
 
-        counter = new Counter();
+                SP1ProofFixtureJson memory fixture = loadFixture("fixture2");
+
+        verifier = address(new SP1VerifierGateway(address(1)));
+        credIssuer = new MDLCityVerification(verifier, fixture.vkey);
 
         vm.stopBroadcast();
     }
