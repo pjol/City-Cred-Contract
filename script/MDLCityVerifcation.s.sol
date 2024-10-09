@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Script, console} from "forge-std/Script.sol";
-import {MDLCityVerification} from "../src/MDLCityVerification.sol";
+import {MDLCityVerifier} from "../src/MDLCityVerifier.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {SP1VerifierGateway} from "@sp1-contracts/SP1VerifierGateway.sol";
 
@@ -16,11 +16,11 @@ struct SP1ProofFixtureJson {
 }
 
 
-contract CounterScript is Script {
+contract MDLCityVerifierScript is Script {
     using stdJson for string;
 
     address verifier;
-    MDLCityVerification public credIssuer;
+    MDLCityVerifier public credIssuer;
 
 
     function loadFixture(string memory fixture) public view returns (SP1ProofFixtureJson memory) {
@@ -39,10 +39,10 @@ contract CounterScript is Script {
     function run() public {
         vm.startBroadcast();
 
-                SP1ProofFixtureJson memory fixture = loadFixture("fixture2");
+        SP1ProofFixtureJson memory fixture = loadFixture("fixture2");
 
         verifier = address(new SP1VerifierGateway(address(1)));
-        credIssuer = new MDLCityVerification(verifier, fixture.vkey);
+        credIssuer = new MDLCityVerifier(verifier, fixture.vkey);
 
         vm.stopBroadcast();
     }
